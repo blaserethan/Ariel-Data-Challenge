@@ -17,7 +17,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
 
-data = np.loadtxt("noisy_test/0001_01_01.txt")
+data = np.loadtxt("noisy_train_1/0041_05_04.txt")
 whitelight = data.mean(0)
 swl = gaussian_filter(whitelight,10)
 template = -1*(swl-swl.max())/(swl-swl.max()).min()
@@ -62,7 +62,7 @@ The neural network will be composed of multiple convolutional layers since each 
 
 ## Tasks for Ethan
 - Find the optimal smoothing factor for the white light template
-    - for each sample loop fit the spectral time-series with different smoothing factors, compute MSE between estimator and Truth, save the best smoothing factor
+    - for each sample fit the spectral time-series with different smoothing factors, compute MSE between estimator and Truth, save the best smoothing factor
     - build a histogram of the best smoothing factors
     - (optional) is there a correlation between best smoothing factor and some other data metric (e.g. stdev, transit depth, transit duration?, etc)
 
