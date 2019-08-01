@@ -7,7 +7,7 @@ The Ariel Space mission is a European Space Agency mission to be launched in 202
 Debiasing planetary radius measurements from star spots. For more information see the [about](https://ariel-datachallenge.azurewebsites.net/ML/documentation/about) page on the data challenge website (a log in may be required). 
 
 ## Procedure 
-1. Create template from white light curve 
+1. Create a template from the white light curve 
 2. Estimate the transit spectrum
 3. Debias the estimator with machine learning
 
