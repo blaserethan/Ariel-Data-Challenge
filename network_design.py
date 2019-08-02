@@ -58,7 +58,6 @@ if __name__ == "__main__":
     # TODO load data
     # TODO preprocess 
 
-
     model = build_model() 
 
     try:
@@ -72,17 +71,17 @@ if __name__ == "__main__":
         #loss=tf.keras.losses.MeanAbsolutePercentageError(),
         metrics=['accuracy']
     )
-
     
     history = model.fit(
         [Xs,zs], ys, # TODO 
         epochs=args.epochs, 
         batch_size=32,
-        validation_data=([Xts,zts], yts),   
+        validation_data=([Xts,zts], yts), # TODO 
     )
     
-
     model.save_weights(args.weights)
+
+    # TODO compare MSE of estimator and NN 
 
     # Plot training & validation loss values
     f,ax = plt.subplots(1)
@@ -94,3 +93,36 @@ if __name__ == "__main__":
     plt.show()
     #plt.savefig('nn_training.pdf',bbox_inches='tight')
     #plt.close()
+
+    yp = model.predict([Xs,zs]) # TODO 
+    yp *= y.max(0) # training
+
+    ytp = model.predict([Xts,zts]) # TODO 
+    ytp *= y.max(0) # test
+
+    # TODO make mosaic of predicted, truth and debiased version 
+    f, ax = plt.subplots( (5,10), figsize=(10,5) )
+    for i in range(5): 
+        for j in range(10):
+            ri = np.random.randint( Xs.shape[0] )
+            ax[i,j].plot( ys[ri], 'g-', label='Truth')
+            ax[i,j].plot( zs[ri], 'r-', label='Prior Estimate')
+            ax[i,j].plot( yp[ri], 'k-', label='NN Estimate')
+            ax[i,j].axis('off')
+
+    f.sup_title('Prediction on Training Samples')
+    plt.tight_layout()
+    plt.show()
+
+
+    f, ax = plt.subplots( (5,10) )
+    for i in range(5): 
+        for j in range(10):
+            ri = np.random.randint( Xs.shape[0] )
+            ax[i,j].plot( zts[ri], 'r-', label='Prior Estimate')
+            ax[i,j].plot( ytp[ri], 'k-', label='NN Estimate')
+            ax[i,j].axis('off')
+
+    f.sup_title('Prediction on Test Samples ')
+    plt.tight_layout()
+    plt.show()
