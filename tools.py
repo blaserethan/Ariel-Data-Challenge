@@ -15,4 +15,5 @@ stellar_mass = lambda logg,rs: ((rs*6.955e10)**2 * 10**logg / 6.674e-8)/1000./ms
 # keplerian semi-major axis (au)
 sa = lambda m,P : (G*m*P**2/(4*np.pi**2) )**(1./3) 
 
+incLim = lambda a, rs: np.arctan((a*au)/(rs*rsun))
 # TODO inclination limit 
