@@ -11,16 +11,22 @@ def estimate_spectrum(data, smooth=10):
     template = -1*(swl-swl.max())/(swl-swl.max()).min()
 
     A = np.vstack([np.ones(swl.shape[0]), template]).T
+    bw, mw = np.linalg.lstsq(A, whitelight, rcond=None)[0]
 
     depths = np.zeros(data.shape[0])
     residuals = np.zeros(data.shape)
     
     for j in range(data.shape[0]):
         b, m = np.linalg.lstsq(A, data[j], rcond=None)[0]
-        depths[j] = m
-        residuals[j] = data[j]- (m*template +b)
+        if m < 0: # if negative transit depth, replace with white light 
+            depths[j] = mw
+            residuals[j] = data[j] - (mw*template+bw)
+        else:
+            depths[j] = m
+            residuals[j] = data[j] - (m*template+b)
+        
 
-    # depths[depths<0] = 0 # will this bias ML with residuals? 
+    # depths[depths<0] = 0 # replace with white light fit 
     return depths, residuals 
 
 

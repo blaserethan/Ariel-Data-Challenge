@@ -4,22 +4,27 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
+from sklearn import preprocessing
+import matplotlib.pyplot as plt
 
-from estimator import estimate_spectrum 
 
 def build_model(): # TODO parameterize model 
 
     input2d = tf.keras.Input(shape=(55,300), name="input_2d")
-    layer2d = layers.Conv2d(32, (5,6), strides=(1,1))(input2d)
+    resize = layers.Reshape((55,300,1))(input2d)
+    layer2d = layers.Conv2D(32, (5,6), strides=(1,1))(resize)
     layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
-    layer2d = layers.Conv2d(32, (5,6), strides=(1,1))(layer2d)
+    layer2d = layers.Conv2D(32, (5,6), strides=(1,1))(layer2d)
+    layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
+    layer2d = layers.Conv2D(32, (5,6), strides=(1,1))(layer2d)
+    layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
+    layer2d = layers.Conv2D(32, (5,6), strides=(1,1))(layer2d)
     layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
     layer2d = layers.Flatten()(layer2d)
 
-    input1d = tf.keras.Input(shape=(55,), name="input_1d")
-    layer1d = layers.Conv1D(32, 3, strides=1)(input1d)
-    layer1d = layers.BatchNormalization(momentum=0.75)(layer1d) 
-    layer1d = layers.Conv1D(32, 3, strides=1)(layer1d)
+    input1d = tf.keras.Input(shape=(55), name="input_1d")
+    resize = layers.Reshape((55,1))(input1d)
+    layer1d = layers.Conv1D(16, 3, strides=1)(resize)
     layer1d = layers.BatchNormalization(momentum=0.75)(layer1d) 
     layer1d = layers.Flatten()(layer1d)
 
@@ -45,10 +50,21 @@ if __name__ == "__main__":
     parser.add_argument("-te", "--test", help=help_)
     args = parser.parse_args()
 
-    # TODO load data
-    # TODO preprocess 
+    truths = pickle.load( open("pickle_files/train_truths.pkl",'rb') )
+    spectra = pickle.load( open("pickle_files/train_estimates.pkl",'rb') )
+    residuals = pickle.load( open("pickle_files/train_residuals.pkl",'rb') )
+
+    # preprocess data, whiten
+    ts = preprocessing.scale(truths, 1) 
+    ss = preprocessing.scale(spectra, 1)
+
+    # rs = preprocessing.scale(residuals, 1)
 
     model = build_model() 
+    model.summary() 
+    tf.keras.utils.plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)
+    
+    dude() 
 
     try:
         model.load_weights(args.weights)

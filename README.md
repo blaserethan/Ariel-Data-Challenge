@@ -66,3 +66,5 @@ The neural network will be composed of multiple convolutional layers since each 
     - build a histogram of the best smoothing factors
     - (optional) is there a correlation between best smoothing factor and some other data metric (e.g. stdev, transit depth, transit duration?, etc)
 
+## Steps from start to finish
+1. python3 noisy_train_estimator.py

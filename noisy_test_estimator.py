@@ -18,8 +18,7 @@ if __name__ == "__main__":
         depths, res = estimate_spectrum(data, smooth=10)
         spectra[i] = depths
         residuals[i] = res
-        np.savetxt("estimator_test/"+files[i].split("/")[1], depths.reshape(1,-1))
         if i%100 == 0:
             print(i)
 
-    pickle.dump( [spectra, residuals], open("test_spectra_residuals.pkl","wb") )
+    pickle.dump( [spectra, residuals], open("test_spectra_residuals.pkl","wb"), protocol=4)
