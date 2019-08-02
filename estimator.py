@@ -20,6 +20,7 @@ def estimate_spectrum(data, smooth=10):
         depths[j] = m
         residuals[j] = data[j]- (m*template +b)
 
+    # depths[depths<0] = 0 # will this bias ML with residuals? 
     return depths, residuals 
 
 
