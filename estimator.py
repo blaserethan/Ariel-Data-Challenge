@@ -24,8 +24,7 @@ def estimate_spectrum(data, smooth=10):
         else:
             depths[j] = m
             residuals[j] = data[j] - (m*template+b)
-        
-
+    
     # depths[depths<0] = 0 # replace with white light fit 
     return depths, residuals 
 

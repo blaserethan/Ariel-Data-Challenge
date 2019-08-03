@@ -1,53 +1,79 @@
 import glob
 import numpy as np
 import pickle 
+import pandas as pd
+import matplotlib.pyplot as plt
 
 from estimator import estimate_spectrum
 from parse_header import get_header
 from tools import *
 
 if __name__ == "__main__":
-    bestMSE = np.Inf
+
     files = glob.glob("noisy_train_1/*.txt") #+ glob.glob("noisy_test_2/*.txt")
-    truthFiles = 
     bs = np.zeros(len(files)) 
-    paramsList= []  #list of dictionaries of all of the parameters we want
+    tempList= []  
+    loggList= []
+    radList= []
+    massList= []
+    kmagList= []
+    periodList= []
+    stdResList= []
+    aList= []
+    incLimList= []
     #get truths for all the files into an array
 
     import pdb; pdb.set_trace()
-    for i in range(len(files)):
+    for i in range(1000): #range(len(files)):
+        bestMSE = np.Inf
+        if (i%100 == 0):
+            print (i)
         data = np.loadtxt(files[i])
         fileHeaders= get_header(files[i])
         checkRange = np.linspace(1, 20, num = 20)
+        truth = np.loadtxt("params_train/"+files[i].split('/')[1])**2
 
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         # loop through smoothing factors to test in checkRange array
         for factor in checkRange:
             depths, res = estimate_spectrum(data, smooth=factor)
-            mse = np.sum( (depths - truth[i])**2 )
+            mse = np.sum( (depths - truth)**2 )
             #if its the best smoothing factor
             if mse<bestMSE :
                 bestMSE= mse
-                bs[i]= mse
+                bs[i]= factor
                 # save parameters from header
                     # also save semi-major axis and inclination limit from tools.py 
                     # also calculate the standard deviation of the residuals to see how noisy the data is
-                fileHeaders["stdRes"] = np.std(res)
+
+                fileHeaders["stdRes"] = np.std(data[:50])
                 fileHeaders["a"]= sa(fileHeaders["star_mass"],fileHeaders["period"])
                 fileHeaders["incLim"]= incLim(fileHeaders["a"], fileHeaders["star_rad"])
-                import pdb; pdb.set_trace()
+                #import pdb; pdb.set_trace()
                 #add to the list of dictionaries
-                paramsList.append(fileHeaders)
+        tempList.append(fileHeaders['star_temp'])
+        loggList.append(fileHeaders['star_logg'])
+        radList.append(fileHeaders['star_rad'])
+        massList.append(fileHeaders['star_mass'])
+        kmagList.append(fileHeaders['star_k_mag'])
+        periodList.append(fileHeaders['period'])
+        stdResList.append(fileHeaders['stdRes'])
+        aList.append(fileHeaders['a'])
+        incLimList.append(fileHeaders['incLim'])
 
-                stdRes = np.std(res)
-                
+    paramsDict = {'temps': tempList, 'logg': loggList, 'st_rad': radList, 'st_mass': massList, 'kmag': kmagList, 'period': periodList, 'stdRes': stdResList, 'a': aList, 'incLim': incLimList}
+
+    df = pd.DataFrame(data=paramsDict)
+         
                 
     
     # create histogram of best smoothing factors
     plt.figure()
     plt.title('Histogram of Best Smoothing Factors')
-    plt.hist(bs)
+    plt.hist(bs[:1000], bins= 50)
     plt.show()
+
+
 
     # create corner plot with smoothing factor and stellar parameters
     # create correlation matrix 
