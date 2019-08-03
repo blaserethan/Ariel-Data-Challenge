@@ -17,6 +17,7 @@ if __name__ == "__main__":
         # parse header
         # get best smoothing factor 
         depths, res = estimate_spectrum(data, smooth=10)
+
         truths[i] = np.loadtxt("params_train/"+files[i].split('/')[1])**2
         estimates[i] = depths
         residuals[i] = res
@@ -26,3 +27,6 @@ if __name__ == "__main__":
     pickle.dump( truths, open("pickle_files/train_truths.pkl",'wb') )
     pickle.dump( estimates, open("pickle_files/train_estimates.pkl",'wb') )
     pickle.dump( residuals, open("pickle_files/train_residuals.pkl",'wb') )
+
+    print('mse :',np.sum(residuals**2))
+    # baseline: stdev 10 -> 5.1 

@@ -11,27 +11,26 @@ import matplotlib.pyplot as plt
 def build_model(): # TODO parameterize model 
 
     input2d = tf.keras.Input(shape=(55,300), name="input_2d")
-    resize = layers.Reshape((55,300,1))(input2d)
-    layer2d = layers.Conv2D(32, (5,6), strides=(1,1))(resize)
-    layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
-    layer2d = layers.Conv2D(32, (5,6), strides=(1,1))(layer2d)
-    layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
-    layer2d = layers.Conv2D(32, (5,6), strides=(1,1))(layer2d)
-    layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
-    layer2d = layers.Conv2D(32, (5,6), strides=(1,1))(layer2d)
-    layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
-    layer2d = layers.Flatten()(layer2d)
+    
+    #resize = layers.Reshape((55,300,1))(input2d)
+    #layer2d = layers.Conv2D(32, (5,6), strides=(1,1))(resize)
+    #layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
+    #layer2d = layers.Conv2D(16, (5,6), strides=(1,1))(layer2d)
+    #layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
+    #layer2d = layers.Conv2D(8, (5,6), strides=(1,1))(layer2d)
+    #layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
+    layer2d = layers.Flatten()(input2d)
 
     input1d = tf.keras.Input(shape=(55), name="input_1d")
-    resize = layers.Reshape((55,1))(input1d)
-    layer1d = layers.Conv1D(16, 3, strides=1)(resize)
-    layer1d = layers.BatchNormalization(momentum=0.75)(layer1d) 
-    layer1d = layers.Flatten()(layer1d)
+    #resize = layers.Reshape((55,1))(input1d)
+    #layer1d = layers.Conv1D(4, 3, strides=1)(resize)
+    #layer1d = layers.BatchNormalization(momentum=0.75)(layer1d) 
+    #layer1d = layers.Flatten()(layer1d)
 
-    layerc = layers.Concatenate()([layer1d,layer2d])
-    layerc = layers.Dense(512, activation='relu')(layerc)
-    layerc = layers.Dropout(0.5)(layerc)
+    #layerc = layers.Concatenate()([layer1d,layer2d])
+    layerc = layers.Concatenate()([input1d,layer2d])
     layerc = layers.Dense(256, activation='relu')(layerc)
+    layerc = layers.Dropout(0.5)(layerc)
     layerc = layers.Dense(128, activation='relu')(layerc)
     output = layers.Dense(55, activation='relu')(layerc)
 
@@ -43,7 +42,7 @@ if __name__ == "__main__":
     help_ = "Load h5 model trained weights"
     parser.add_argument("-w", "--weights", help=help_, default="regressor.h5")
     help_ = "Number of training epochs"
-    parser.add_argument("-e", "--epochs", help=help_, default=10 ,type=int)
+    parser.add_argument("-e", "--epochs", help=help_, default=20 ,type=int)
     help_ = "Pickle file of training samples"
     parser.add_argument("-tr", "--train", help=help_)
     help_ = "Pickle file of test samples"
@@ -51,25 +50,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     truths = pickle.load( open("pickle_files/train_truths.pkl",'rb') )
-    spectra = pickle.load( open("pickle_files/train_estimates.pkl",'rb') )
+    estimates = pickle.load( open("pickle_files/train_estimates.pkl",'rb') )
     residuals = pickle.load( open("pickle_files/train_residuals.pkl",'rb') )
 
     # preprocess data, whiten
-    ts = preprocessing.scale(truths, 1) 
-    ss = preprocessing.scale(spectra, 1)
-
+    #ts = preprocessing.scale(truths, 1) 
+    #ss = preprocessing.scale(spectra, 1)
     # rs = preprocessing.scale(residuals, 1)
 
     model = build_model() 
     model.summary() 
-    tf.keras.utils.plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)
     
-    dude() 
-
-    try:
-        model.load_weights(args.weights)
-    except:
-        print('load weights failed')
+    #tf.keras.utils.plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)
+    
+    #try:
+    #    model.load_weights(args.weights)
+    #except:
+    #    print('load weights failed')
 
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3), # TODO parameterize optimizer 
@@ -79,15 +76,13 @@ if __name__ == "__main__":
     )
     
     history = model.fit(
-        [Xs,zs], ys, # TODO 
+        [residuals,estimates], truths, # TODO 
         epochs=args.epochs, 
         batch_size=32,
-        validation_data=([Xts,zts], yts), # TODO 
+        validation_split=0.1
     )
     
     model.save_weights(args.weights)
-
-    # TODO compare MSE of estimator and NN 
 
     # Plot training & validation loss values
     f,ax = plt.subplots(1)
@@ -100,28 +95,31 @@ if __name__ == "__main__":
     #plt.savefig('nn_training.pdf',bbox_inches='tight')
     #plt.close()
 
-    yp = model.predict([Xs,zs]) # TODO 
-    yp *= y.max(0) # training
+    mse = np.sum( (truths-estimates)**2 )
 
-    ytp = model.predict([Xts,zts]) # TODO 
-    ytp *= y.max(0) # test
+    debiased = model.predict( [residuals,estimates] ) 
+    mse_db = np.sum( (truths-debiased)**2 )
 
-    # TODO make mosaic of predicted, truth and debiased version 
-    f, ax = plt.subplots( (5,10), figsize=(10,5) )
+    print('starting mse:',mse)
+    print('debiased mse:',mse_db)
+
+    f, ax = plt.subplots( 5,10, figsize=(10,5) )
     for i in range(5): 
         for j in range(10):
-            ri = np.random.randint( Xs.shape[0] )
-            ax[i,j].plot( ys[ri], 'g-', label='Truth')
-            ax[i,j].plot( zs[ri], 'r-', label='Prior Estimate')
-            ax[i,j].plot( yp[ri], 'k-', label='NN Estimate')
+            ri = np.random.randint( truths.shape[0] )
+            ax[i,j].plot( truths[ri], 'g-', label='Truth')
+            ax[i,j].plot( estimates[ri], 'r--', label='Prior Estimate')
+            ax[i,j].plot( debiased[ri], 'k-', label='NN Estimate')
             ax[i,j].axis('off')
 
-    f.sup_title('Prediction on Training Samples')
+    f.suptitle('Prediction on Training Samples')
     plt.tight_layout()
     plt.show()
 
 
-    f, ax = plt.subplots( (5,10) )
+
+
+    f, ax = plt.subplots( 5,10 )
     for i in range(5): 
         for j in range(10):
             ri = np.random.randint( Xs.shape[0] )
