@@ -70,8 +70,8 @@ if __name__ == "__main__":
 
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3), # TODO parameterize optimizer 
-        loss=tf.keras.losses.MeanSquaredError(),
-        #loss=tf.keras.losses.MeanAbsolutePercentageError(),
+        #loss=tf.keras.losses.MeanSquaredError(),
+        loss=tf.keras.losses.MeanAbsolutePercentageError(),
         metrics=['accuracy']
     )
     
