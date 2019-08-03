@@ -16,16 +16,17 @@ def estimate_spectrum(data, smooth=10):
     depths = np.zeros(data.shape[0]) #alloc for transit depth vector
     residuals = np.zeros(data.shape) #Data- model
     
-    for j in range(data.shape[0]): #loop through each 
-        b, m = np.linalg.lstsq(A, data[j], rcond=None)[0]
-        if m < 0: # if negative transit depth, replace with white light curve fit
+    for j in range(data.shape[0]):
+        b, m = np.linalg.lstsq(A, gaussian_filter(data[j],1), rcond=None)[0]
+        #b, m = np.linalg.lstsq(A, data[j], rcond=None)[0]
+
+        if m < 0: # if negative transit depth, replace with white light 
             depths[j] = mw
             residuals[j] = data[j] - (mw*template+bw) #residuals from white light curve fit
         else:
             depths[j] = m
             residuals[j] = data[j] - (m*template+b) #residuals for each template model
     
-    # depths[depths<0] = 0 # replace with white light fit 
     return depths, residuals 
 
 

@@ -16,7 +16,7 @@ if __name__ == "__main__":
         data = np.loadtxt(files[i])
         # parse header
         # get best smoothing factor 
-        depths, res = estimate_spectrum(data, smooth=10)
+        depths, res = estimate_spectrum(data, smooth=9)
 
         truths[i] = np.loadtxt("params_train/"+files[i].split('/')[1])**2
         estimates[i] = depths
@@ -28,5 +28,10 @@ if __name__ == "__main__":
     pickle.dump( estimates, open("pickle_files/train_estimates.pkl",'wb') )
     pickle.dump( residuals, open("pickle_files/train_residuals.pkl",'wb') )
 
-    print('mse :',np.sum(residuals**2))
-    # baseline: stdev 10 -> 5.1 
+    print('mse :',np.sum( (truths-estimates)**2 ) )
+
+    # MSE values for different fits 
+    # template smoothing factor 10 -> 5.1 
+    # template smoothing factor 9  -> 5.08
+    # template smoothing factor 9, data smoothing factor 1 - > 5.07
+    # MSE of white light flat spectrum - > 
