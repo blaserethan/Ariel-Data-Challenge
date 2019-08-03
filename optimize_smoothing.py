@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from estimator import estimate_spectrum
 from parse_header import get_header
 from tools import *
+from pandas.plotting import scatter_matrix
 
 if __name__ == "__main__":
 
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     #get truths for all the files into an array
 
     import pdb; pdb.set_trace()
-    for i in range(1000): #range(len(files)):
+    for i in range(len(files)):
         bestMSE = np.Inf
         if (i%100 == 0):
             print (i)
@@ -45,12 +46,11 @@ if __name__ == "__main__":
                 # save parameters from header
                     # also save semi-major axis and inclination limit from tools.py 
                     # also calculate the standard deviation of the residuals to see how noisy the data is
-
-                fileHeaders["stdRes"] = np.std(data[:50])
-                fileHeaders["a"]= sa(fileHeaders["star_mass"],fileHeaders["period"])
-                fileHeaders["incLim"]= incLim(fileHeaders["a"], fileHeaders["star_rad"])
                 #import pdb; pdb.set_trace()
                 #add to the list of dictionaries
+        fileHeaders["stdRes"] = np.std(data[:50])
+        fileHeaders["a"]= sa(fileHeaders["star_mass"],fileHeaders["period"])
+        fileHeaders["incLim"]= incLim(fileHeaders["a"], fileHeaders["star_rad"])
         tempList.append(fileHeaders['star_temp'])
         loggList.append(fileHeaders['star_logg'])
         radList.append(fileHeaders['star_rad'])
@@ -61,22 +61,38 @@ if __name__ == "__main__":
         aList.append(fileHeaders['a'])
         incLimList.append(fileHeaders['incLim'])
 
-    paramsDict = {'temps': tempList, 'logg': loggList, 'st_rad': radList, 'st_mass': massList, 'kmag': kmagList, 'period': periodList, 'stdRes': stdResList, 'a': aList, 'incLim': incLimList}
+    paramsDict = {'temps': tempList, 'logg': loggList, 'st_rad': radList, 'st_mass': massList, 'kmag': kmagList, 'period': periodList, 'stdRes': stdResList, 'a': aList, 'incLim': incLimList,'sf': bs.tolist()}
 
+    #build pandas dataframe
     df = pd.DataFrame(data=paramsDict)
-         
+
+    # create corner plot with smoothing factor and stellar parameters  
+    scatter_matrix(df)
+    plt.show()
+
+    # create correlation matrix 
+    plt.figure()
+    plt.matshow(df.corr())
+    plt.colorbar()
+    plt.show()
+
+    plt.figure()
+    plt.plot(bs.tolist(), periodList, 'bo')
+    plt.show()
+
+    plt.hist(periodList, bins = 100)
+    plt.show()
                 
-    
+    plt.plot(stdResList, bs.tolist(), 'bo')
+    plt.show()
+
     # create histogram of best smoothing factors
     plt.figure()
     plt.title('Histogram of Best Smoothing Factors')
-    plt.hist(bs[:1000], bins= 50)
+    plt.hist(bs, bins= 50)
     plt.show()
 
 
-
-    # create corner plot with smoothing factor and stellar parameters
-    # create correlation matrix 
     # if there is a correlation: Use a spline as an estimate for an interpolation 
     #       input: whatever parameters, output: smoothing factor 
 
