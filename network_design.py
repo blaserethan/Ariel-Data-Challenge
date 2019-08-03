@@ -43,10 +43,6 @@ if __name__ == "__main__":
     parser.add_argument("-w", "--weights", help=help_, default="regressor.h5")
     help_ = "Number of training epochs"
     parser.add_argument("-e", "--epochs", help=help_, default=20 ,type=int)
-    help_ = "Pickle file of training samples"
-    parser.add_argument("-tr", "--train", help=help_)
-    help_ = "Pickle file of test samples"
-    parser.add_argument("-te", "--test", help=help_)
     args = parser.parse_args()
 
     truths = pickle.load( open("pickle_files/train_truths.pkl",'rb') )
@@ -54,13 +50,20 @@ if __name__ == "__main__":
     residuals = pickle.load( open("pickle_files/train_residuals.pkl",'rb') )
 
     # preprocess data, whiten
-    #ts = preprocessing.scale(truths, 1) 
-    #ss = preprocessing.scale(spectra, 1)
+    alldata = np.concatenate([truths,estimates])
+    allmean = np.mean(alldata,1)
+    allmeansub = (alldata.T-allmean).T
+
+
+    #ts = preprocessing.scale(truths, 1)
+    #ss = preprocessing.scale(estimates, 1)
     # rs = preprocessing.scale(residuals, 1)
+    wr = np.copy(residuals)
 
     model = build_model() 
     model.summary() 
-    
+
+    dude()     
     #tf.keras.utils.plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)
     
     #try:
@@ -76,7 +79,7 @@ if __name__ == "__main__":
     )
     
     history = model.fit(
-        [residuals,estimates], truths, # TODO 
+        [residuals,estimates], truths,
         epochs=args.epochs, 
         batch_size=32,
         validation_split=0.1
@@ -103,7 +106,8 @@ if __name__ == "__main__":
     print('starting mse:',mse)
     print('debiased mse:',mse_db)
 
-    f, ax = plt.subplots( 5,10, figsize=(10,5) )
+    f, ax = plt.subplots( 5,10, figsize=(13,7) )
+    plt.subplots_adjust(top=0.93,bottom=0.04,left=0.01,right=0.985)
     for i in range(5): 
         for j in range(10):
             ri = np.random.randint( truths.shape[0] )
@@ -113,12 +117,12 @@ if __name__ == "__main__":
             ax[i,j].axis('off')
 
     f.suptitle('Prediction on Training Samples')
-    plt.tight_layout()
     plt.show()
 
 
 
-
+    # TODO mosaic for test data 
+    '''
     f, ax = plt.subplots( 5,10 )
     for i in range(5): 
         for j in range(10):
@@ -130,3 +134,4 @@ if __name__ == "__main__":
     f.sup_title('Prediction on Test Samples ')
     plt.tight_layout()
     plt.show()
+    '''
