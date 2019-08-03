@@ -6,15 +6,15 @@ from scipy.ndimage import gaussian_filter
 
 def estimate_spectrum(data, smooth=10): 
 
-    whitelight = data.mean(0)
-    swl = gaussian_filter(whitelight,smooth)
-    template = -1*(swl-swl.max())/(swl-swl.max()).min()
+    whitelight = data.mean(0) #make a white light curve
+    swl = gaussian_filter(whitelight,smooth) #smooth it out
+    template = -1*(swl-swl.max())/(swl-swl.max()).min() #scale smooth light curve between -1 and 0
 
-    A = np.vstack([np.ones(swl.shape[0]), template]).T
-    bw, mw = np.linalg.lstsq(A, whitelight, rcond=None)[0]
+    A = np.vstack([np.ones(swl.shape[0]), template]).T #makes template matrix
+    bw, mw = np.linalg.lstsq(A, whitelight, rcond=None)[0] #fit for m is depth and b is offset of white lightcurve
 
-    depths = np.zeros(data.shape[0])
-    residuals = np.zeros(data.shape)
+    depths = np.zeros(data.shape[0]) #alloc for transit depth vector
+    residuals = np.zeros(data.shape) #Data- model
     
     for j in range(data.shape[0]):
         b, m = np.linalg.lstsq(A, gaussian_filter(data[j],1), rcond=None)[0]
@@ -22,10 +22,10 @@ def estimate_spectrum(data, smooth=10):
 
         if m < 0: # if negative transit depth, replace with white light 
             depths[j] = mw
-            residuals[j] = data[j] - (mw*template+bw)
+            residuals[j] = data[j] - (mw*template+bw) #residuals from white light curve fit
         else:
             depths[j] = m
-            residuals[j] = data[j] - (m*template+b)
+            residuals[j] = data[j] - (m*template+b) #residuals for each template model
     
     return depths, residuals 
 

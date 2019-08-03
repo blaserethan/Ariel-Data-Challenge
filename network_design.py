@@ -8,7 +8,7 @@ from sklearn import preprocessing
 import matplotlib.pyplot as plt
 
 
-def build_model(): # TODO parameterize model 
+def build_FullyConnected(firstDense= [256], secondDense= [128,32], dropout= .5, ): # TODO parameterize model 
 
     input2d = tf.keras.Input(shape=(55,300), name="input_2d")
     
@@ -29,9 +29,18 @@ def build_model(): # TODO parameterize model
 
     #layerc = layers.Concatenate()([layer1d,layer2d])
     layerc = layers.Concatenate()([input1d,layer2d])
-    layerc = layers.Dense(256, activation='relu')(layerc)
-    layerc = layers.Dropout(0.5)(layerc)
-    layerc = layers.Dense(128, activation='relu')(layerc)
+
+    #first set of fully-connected layers
+    for size in firstDense:
+        layerc= layers.Dense(size, activation= 'relu')(layerc)
+    output = layers.Dense(55, activation='relu')(layerc)
+    layerc = layers.Dropout(dropout)(layerc)
+
+    #second set of fully-connected layers
+    for size in secondDense:
+        layerc= layers.Dense(size, activation= 'relu')(layerc)
+
+    #output layer
     output = layers.Dense(55, activation='relu')(layerc)
 
     return tf.keras.Model(inputs=[input2d,input1d], outputs=output, name='regressor')
@@ -60,7 +69,7 @@ if __name__ == "__main__":
     # rs = preprocessing.scale(residuals, 1)
     wr = np.copy(residuals)
 
-    model = build_model() 
+    model = build_FullyConnected() 
     model.summary() 
 
     dude()     
