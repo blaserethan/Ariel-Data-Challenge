@@ -8,7 +8,7 @@ from sklearn import preprocessing
 import matplotlib.pyplot as plt
 
 
-def build_model(): # TODO parameterize model 
+def build_FullyConnected(firstDense= [256], secondDense= [128,32], dropout= .5, ): # TODO parameterize model 
 
     input2d = tf.keras.Input(shape=(55,300), name="input_2d")
     
@@ -29,36 +29,45 @@ def build_model(): # TODO parameterize model
 
     #layerc = layers.Concatenate()([layer1d,layer2d])
     layerc = layers.Concatenate()([input1d,layer2d])
-    layerc = layers.Dense(256, activation='relu')(layerc)
-    layerc = layers.Dropout(0.5)(layerc)
-    layerc = layers.Dense(128, activation='relu')(layerc)
+
+    #first set of fully-connected layers
+    for size in firstDense:
+        layerc= layers.Dense(size, activation= 'relu')(layerc)
+    output = layers.Dense(55, activation='relu')(layerc)
+    layerc = layers.Dropout(dropout)(layerc)
+
+    #second set of fully-connected layers
+    for size in secondDense:
+        layerc= layers.Dense(size, activation= 'relu')(layerc)
+
+    #output layer
     output = layers.Dense(55, activation='relu')(layerc)
 
     return tf.keras.Model(inputs=[input2d,input1d], outputs=output, name='regressor')
 
 if __name__ == "__main__":
     
-    parser = argparse.ArgumentParser()
-    help_ = "Load h5 model trained weights"
-    parser.add_argument("-w", "--weights", help=help_, default="regressor.h5")
-    help_ = "Number of training epochs"
-    parser.add_argument("-e", "--epochs", help=help_, default=20 ,type=int)
-    help_ = "Pickle file of training samples"
-    parser.add_argument("-tr", "--train", help=help_)
-    help_ = "Pickle file of test samples"
-    parser.add_argument("-te", "--test", help=help_)
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # help_ = "Load h5 model trained weights"
+    # parser.add_argument("-w", "--weights", help=help_, default="regressor.h5")
+    # help_ = "Number of training epochs"
+    # parser.add_argument("-e", "--epochs", help=help_, default=20 ,type=int)
+    # help_ = "Pickle file of training samples"
+    # parser.add_argument("-tr", "--train", help=help_)
+    # help_ = "Pickle file of test samples"
+    # parser.add_argument("-te", "--test", help=help_)
+    # args = parser.parse_args()
 
-    truths = pickle.load( open("pickle_files/train_truths.pkl",'rb') )
-    estimates = pickle.load( open("pickle_files/train_estimates.pkl",'rb') )
-    residuals = pickle.load( open("pickle_files/train_residuals.pkl",'rb') )
+    # truths = pickle.load( open("pickle_files/train_truths.pkl",'rb') )
+    # estimates = pickle.load( open("pickle_files/train_estimates.pkl",'rb') )
+    # residuals = pickle.load( open("pickle_files/train_residuals.pkl",'rb') )
 
     # preprocess data, whiten
     #ts = preprocessing.scale(truths, 1) 
     #ss = preprocessing.scale(spectra, 1)
     # rs = preprocessing.scale(residuals, 1)
 
-    model = build_model() 
+    model = build_FullyConnected() 
     model.summary() 
     
     #tf.keras.utils.plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)
