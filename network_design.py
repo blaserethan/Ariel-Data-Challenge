@@ -8,32 +8,62 @@ from sklearn import preprocessing
 import matplotlib.pyplot as plt
 
 
-def build_FullyConnected(firstDense= [256], secondDense= [128,32], dropout= .5, ): # TODO parameterize model 
+def build_Convolutional(twoDOuts= [32,16,8], twoDKernel= [(5,6),(5,6),(5,6)], oneDOuts= [4], oneDKernel=[3],  firstDense= 256, secondDense= [128,32], dropout= .5, ):  
+
+    input2d = tf.keras.Input(shape=(55,300), name="input_2d")   
+    layer2d = layers.Reshape((55,300,1))(input2d)
+    
+    kernelCount2 = 0
+    for outSize in twoDOuts:
+        layer2d = layers.Conv2D(outSize, twoDKernel[kernelCount2], strides=(1,1))(layer2d)
+        layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
+        kernelCount2 = kernelCount2+1
+
+    layer2d = layers.Flatten()(layer2d)
+
+    input1d = tf.keras.Input(shape=(55), name="input_1d")
+    layer1d = layers.Reshape((55,1))(input1d)
+
+    kernelCount1= 0
+    for outSize in oneDOuts:
+        layer1d = layers.Conv1D(outSize, oneDKernel[kernelCount1], strides=1)(layer1d)
+        layer1d = layers.BatchNormalization(momentum=0.75)(layer1d) 
+        kernelCount1= kernelCount1+1
+
+    layer1d = layers.Flatten()(layer1d)
+
+    #layerc = layers.Concatenate()([layer1d,layer2d])
+    layerc = layers.Concatenate()([layer1d,layer2d])
+
+    #first set of fully-connected layers
+    layerc= layers.Dense(firstDense, activation= 'relu')(layerc)
+
+    layerc = layers.Dropout(dropout)(layerc)
+
+    #second set of fully-connected layers
+    for size in secondDense:
+        layerc= layers.Dense(size, activation= 'relu')(layerc)
+
+    #output layer
+    output = layers.Dense(55, activation='relu')(layerc)
+
+    return tf.keras.Model(inputs=[input2d,input1d], outputs=output, name='regressor')
+
+
+def build_FullyConnected(firstDense= 256, secondDense= [128,32], dropout= .5, ): # TODO parameterize model 
 
     input2d = tf.keras.Input(shape=(55,300), name="input_2d")
     
-    #resize = layers.Reshape((55,300,1))(input2d)
-    #layer2d = layers.Conv2D(32, (5,6), strides=(1,1))(resize)
-    #layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
-    #layer2d = layers.Conv2D(16, (5,6), strides=(1,1))(layer2d)
-    #layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
-    #layer2d = layers.Conv2D(8, (5,6), strides=(1,1))(layer2d)
-    #layer2d = layers.BatchNormalization(momentum=0.75)(layer2d) 
     layer2d = layers.Flatten()(input2d)
 
     input1d = tf.keras.Input(shape=(55), name="input_1d")
-    #resize = layers.Reshape((55,1))(input1d)
-    #layer1d = layers.Conv1D(4, 3, strides=1)(resize)
-    #layer1d = layers.BatchNormalization(momentum=0.75)(layer1d) 
-    #layer1d = layers.Flatten()(layer1d)
 
     #layerc = layers.Concatenate()([layer1d,layer2d])
     layerc = layers.Concatenate()([input1d,layer2d])
 
     #first set of fully-connected layers
-    for size in firstDense:
-        layerc= layers.Dense(size, activation= 'relu')(layerc)
-    output = layers.Dense(55, activation='relu')(layerc)
+    layerc= layers.Dense(firstDense, activation= 'relu')(layerc)
+
     layerc = layers.Dropout(dropout)(layerc)
 
     #second set of fully-connected layers
@@ -47,18 +77,18 @@ def build_FullyConnected(firstDense= [256], secondDense= [128,32], dropout= .5, 
 
 if __name__ == "__main__":
     
-    parser = argparse.ArgumentParser()
-    help_ = "Load h5 model trained weights"
-    parser.add_argument("-w", "--weights", help=help_, default="regressor.h5")
-    help_ = "Number of training epochs"
-    parser.add_argument("-e", "--epochs", help=help_, default=20 ,type=int)
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # help_ = "Load h5 model trained weights"
+    # parser.add_argument("-w", "--weights", help=help_, default="regressor.h5")
+    # help_ = "Number of training epochs"
+    # parser.add_argument("-e", "--epochs", help=help_, default=20 ,type=int)
+    # args = parser.parse_args()
 
-    truths = pickle.load( open("pickle_files/train_truths.pkl",'rb') )*100
-    estimates = pickle.load( open("pickle_files/train_estimates.pkl",'rb') )*100
-    residuals = pickle.load( open("pickle_files/train_residuals.pkl",'rb') )*100
+    # truths = pickle.load( open("pickle_files/train_truths.pkl",'rb') )*100
+    # estimates = pickle.load( open("pickle_files/train_estimates.pkl",'rb') )*100
+    # residuals = pickle.load( open("pickle_files/train_residuals.pkl",'rb') )*100
     
-    model = build_FullyConnected()
+    model = build_Convolutional()
     model.summary() 
 
     #tf.keras.utils.plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)
