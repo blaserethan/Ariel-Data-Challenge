@@ -54,25 +54,13 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--epochs", help=help_, default=20 ,type=int)
     args = parser.parse_args()
 
-    truths = pickle.load( open("pickle_files/train_truths.pkl",'rb') )
-    estimates = pickle.load( open("pickle_files/train_estimates.pkl",'rb') )
-    residuals = pickle.load( open("pickle_files/train_residuals.pkl",'rb') )
-
-    # preprocess data, whiten
-    alldata = np.concatenate([truths,estimates])
-    allmean = np.mean(alldata,1)
-    allmeansub = (alldata.T-allmean).T
-
-
-    #ts = preprocessing.scale(truths, 1)
-    #ss = preprocessing.scale(estimates, 1)
-    # rs = preprocessing.scale(residuals, 1)
-    wr = np.copy(residuals)
-
-    model = build_FullyConnected() 
+    truths = pickle.load( open("pickle_files/train_truths.pkl",'rb') )*100
+    estimates = pickle.load( open("pickle_files/train_estimates.pkl",'rb') )*100
+    residuals = pickle.load( open("pickle_files/train_residuals.pkl",'rb') )*100
+    
+    model = build_FullyConnected()
     model.summary() 
 
-    dude()     
     #tf.keras.utils.plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)
     
     #try:
