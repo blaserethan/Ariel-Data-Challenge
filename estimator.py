@@ -4,21 +4,28 @@ import matplotlib.pyplot as plt
 
 from scipy.ndimage import gaussian_filter
 
-def estimate_spectrum(data, smooth=9, data_smooth=2): 
+def estimate_spectrum(data, smooth=9, data_smooth=9): 
 
     whitelight = data.mean(0) #make a white light curve
     swl = gaussian_filter(whitelight, smooth) #smooth it out
     template = -1*(swl-swl.max())/(swl-swl.max()).min() #scale smooth light curve between -1 and 0
-
     A = np.vstack([np.ones(swl.shape[0]), template]).T #makes template matrix
     bw, mw = np.linalg.lstsq(A, whitelight, rcond=None)[0] #fit for m is depth and b is offset of white lightcurve
+    resw = data.mean(0) - (mw*template+bw)
+    snr = mw/np.std(resw)
+
+    # smooth data in time and wavelength to reduce noise    
+    sdata = gaussian_filter(data,data_smooth)
 
     depths = np.zeros(data.shape[0]) #alloc for transit depth vector
     residuals = np.zeros(data.shape) #Data- model
-    
+
     for j in range(data.shape[0]):
-        b, m = np.linalg.lstsq(A, gaussian_filter(data[j], data_smooth), rcond=None)[0]
-        #b, m = np.linalg.lstsq(A, data[j], rcond=None)[0]
+        #depths[j] = mw
+        #residuals[j] = data[j] - (mw*template+bw) #residuals from white light curve fit
+        #continue 
+
+        b, m = np.linalg.lstsq(A, sdata[j], rcond=None)[0]
 
         if m < 0: # if negative transit depth, replace with white light 
             depths[j] = mw
@@ -27,8 +34,9 @@ def estimate_spectrum(data, smooth=9, data_smooth=2):
             depths[j] = m
             residuals[j] = data[j] - (m*template+b) #residuals for each template model
     
-    return depths, residuals 
+    return depths, residuals, snr
 
+# average with mirror image? 
 
 if __name__ == "__main__":
 
@@ -55,11 +63,11 @@ if __name__ == "__main__":
     plt.title('White Light Curve ({})'.format(files[i]))
     plt.show()
 
-
-    depths, residuals = estimate_spectrum(data)
+    depths, residuals, snr = estimate_spectrum(data)
     
     plt.plot(pars**2,'g-',label='truth')
     plt.plot(depths,'r-',label='estimate')
+    plt.plot([0,len(depths)-1],[mw,mw],'k--',label='White Light')
     plt.legend(loc='best')
     plt.xlabel('wavelength')
     plt.ylabel('Transit Depth')

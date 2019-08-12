@@ -1,3 +1,4 @@
+import glob
 import pickle
 import argparse
 
@@ -50,7 +51,7 @@ def build_Convolutional(twoDOuts= [32,16,8], twoDKernel= [(5,6),(5,6),(5,6)], on
     return tf.keras.Model(inputs=[input2d,input1d], outputs=output, name='regressor')
 
 
-def build_FullyConnected(firstDense= 256, secondDense= [128,32], dropout= .5, ): # TODO parameterize model 
+def build_FullyConnected(firstDense= 512, secondDense= [256,128], dropout= .5, ): # TODO parameterize model 
 
     input2d = tf.keras.Input(shape=(55,300), name="input_2d")
     
@@ -75,43 +76,45 @@ def build_FullyConnected(firstDense= 256, secondDense= [128,32], dropout= .5, ):
 
     return tf.keras.Model(inputs=[input2d,input1d], outputs=output, name='regressor')
 
+
 if __name__ == "__main__":
     
-    # parser = argparse.ArgumentParser()
-    # help_ = "Load h5 model trained weights"
-    # parser.add_argument("-w", "--weights", help=help_, default="regressor.h5")
-    # help_ = "Number of training epochs"
-    # parser.add_argument("-e", "--epochs", help=help_, default=20 ,type=int)
-    # args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    help_ = "Load h5 model trained weights"
+    parser.add_argument("-w", "--weights", help=help_, default="regressor.h5")
+    help_ = "Number of training epochs"
+    parser.add_argument("-e", "--epochs", help=help_, default=20 ,type=int)
+    args = parser.parse_args()
 
-    # truths = pickle.load( open("pickle_files/train_truths.pkl",'rb') )*100
-    # estimates = pickle.load( open("pickle_files/train_estimates.pkl",'rb') )*100
-    # residuals = pickle.load( open("pickle_files/train_residuals.pkl",'rb') )*100
-    
-    model = build_Convolutional()
+    model = build_FullyConnected()
     model.summary() 
 
-    #tf.keras.utils.plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3), # TODO parameterize optimizer 
+        loss=tf.keras.losses.MeanSquaredError(),
+        #loss=tf.keras.losses.MeanAbsolutePercentageError(),
+    )
     
     #try:
     #    model.load_weights(args.weights)
     #except:
     #    print('load weights failed')
 
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3), # TODO parameterize optimizer 
-        #loss=tf.keras.losses.MeanSquaredError(),
-        loss=tf.keras.losses.MeanAbsolutePercentageError(),
-        metrics=['accuracy']
-    )
-    
-    history = model.fit(
-        [residuals,estimates], truths,
-        epochs=args.epochs, 
-        batch_size=32,
-        validation_split=0.1
-    )
-    
+    for i in range(len(4)): # loop through each batch of training data 
+        for j in range(4): # repeat training since we can't do "cross-batches" 
+            truths = pickle.load( open("pickle_files/train_{}_truths.pkl".format(i),'rb') )
+            estimates = pickle.load( open("pickle_files/train_{}_estimates.pkl".format(i),'rb') )
+            residuals = pickle.load( open("pickle_files/train_{}_residuals.pkl".format(i),'rb') )
+
+            # TODO preprocess data 
+
+            history = model.fit(
+                [residuals,estimates], truths,
+                epochs=args.epochs, 
+                batch_size=32,
+                validation_split=0.1
+            )
+        
     model.save_weights(args.weights)
 
     # Plot training & validation loss values
@@ -126,9 +129,10 @@ if __name__ == "__main__":
     #plt.close()
 
     mse = np.sum( (truths-estimates)**2 )
-
     debiased = model.predict( [residuals,estimates] ) 
     mse_db = np.sum( (truths-debiased)**2 )
+
+    # TODO scale predicting using preprocessed data 
 
     print('starting mse:',mse)
     print('debiased mse:',mse_db)
@@ -145,8 +149,6 @@ if __name__ == "__main__":
 
     f.suptitle('Prediction on Training Samples')
     plt.show()
-
-
 
     # TODO mosaic for test data 
     '''
