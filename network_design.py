@@ -107,6 +107,11 @@ if __name__ == "__main__":
             residuals = pickle.load( open("pickle_files/train_{}_residuals.pkl".format(i),'rb') )
 
             # TODO preprocess data 
+            # residuals should have a mean around 0 scale to have a std ~1
+            # scaled_residuals = residuals[0] / residuals[0].std() 
+            # scaled_estimates = estimates[0] / residuals[0].std()
+            # scaled_truths = truths[0] / residuals[0].std()
+            # ?? do the estimates + truths have to be on the same scale as residuals
 
             history = model.fit(
                 [residuals,estimates], truths,
