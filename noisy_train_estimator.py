@@ -1,3 +1,5 @@
+# applies estimator to training data prior to NN input
+# preprocessing step 
 import glob
 import numpy as np
 import pickle 

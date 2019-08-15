@@ -100,6 +100,7 @@ if __name__ == "__main__":
     #except:
     #    print('load weights failed')
 
+    mse = []
     for i in range(4): # loop through each batch of training data 
         print('iteration:',i)
         for j in range(4): # repeat training since we can't do "cross-batches" 
@@ -124,6 +125,13 @@ if __name__ == "__main__":
                 batch_size=32,
                 validation_split=0.1
             )
+
+            debiased = model.predict( [scaled_residuals,scaled_estimates] )
+            for k in range(debiased.shape[0]):
+                debiased[k] *= residuals[k].std()
+
+            mse_db = np.sum( (truths-debiased)**2 )
+
         
         model.save_weights(args.weights)
 
@@ -140,6 +148,7 @@ if __name__ == "__main__":
 
 
     mse = np.sum( (truths-estimates)**2 )
+
     debiased = model.predict( [scaled_residuals,scaled_estimates] )
     for k in range(debiased.shape[0]):
         debiased[k] *= residuals[k].std()
