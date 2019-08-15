@@ -111,7 +111,6 @@ if __name__ == "__main__":
             # scaled_residuals = residuals[0] / residuals[0].std() 
             # scaled_estimates = estimates[0] / residuals[0].std()
             # scaled_truths = truths[0] / residuals[0].std()
-            # ?? do the estimates + truths have to be on the same scale as residuals
 
             history = model.fit(
                 [residuals,estimates], truths,
