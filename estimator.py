@@ -16,7 +16,7 @@ def estimate_spectrum(data, smooth=9, data_smooth=9):
 
     # smooth data in time and wavelength to reduce noise    
     sdata = gaussian_filter(data,data_smooth)
-
+    
     depths = np.zeros(data.shape[0]) #alloc for transit depth vector
     residuals = np.zeros(data.shape) #Data- model
 

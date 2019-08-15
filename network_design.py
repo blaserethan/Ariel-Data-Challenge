@@ -83,7 +83,7 @@ if __name__ == "__main__":
     help_ = "Load h5 model trained weights"
     parser.add_argument("-w", "--weights", help=help_, default="regressor.h5")
     help_ = "Number of training epochs"
-    parser.add_argument("-e", "--epochs", help=help_, default=20 ,type=int)
+    parser.add_argument("-e", "--epochs", help=help_, default=10 ,type=int)
     args = parser.parse_args()
 
     model = build_FullyConnected()
@@ -100,26 +100,32 @@ if __name__ == "__main__":
     #except:
     #    print('load weights failed')
 
-    for i in range(len(4)): # loop through each batch of training data 
+    for i in range(4): # loop through each batch of training data 
+        print('iteration:',i)
         for j in range(4): # repeat training since we can't do "cross-batches" 
-            truths = pickle.load( open("pickle_files/train_{}_truths.pkl".format(i),'rb') )
-            estimates = pickle.load( open("pickle_files/train_{}_estimates.pkl".format(i),'rb') )
-            residuals = pickle.load( open("pickle_files/train_{}_residuals.pkl".format(i),'rb') )
+            truths = pickle.load( open("pickle_files/train_{}_truths.pkl".format(i+1),'rb') )
+            estimates = pickle.load( open("pickle_files/train_{}_estimates.pkl".format(i+1),'rb') )
+            residuals = pickle.load( open("pickle_files/train_{}_residuals.pkl".format(i+1),'rb') )
 
-            # TODO preprocess data 
             # residuals should have a mean around 0 scale to have a std ~1
-            # scaled_residuals = residuals[0] / residuals[0].std() 
-            # scaled_estimates = estimates[0] / residuals[0].std()
-            # scaled_truths = truths[0] / residuals[0].std()
+            scaled_residuals = np.copy(residuals)
+            scaled_estimates = np.copy(estimates)
+            scaled_truths = np.copy(truths)
+
+            for k in range(residuals.shape[0]):
+                scaled_residuals[k] = residuals[k] / residuals[k].std() 
+                scaled_estimates[k] = (estimates[k] - np.mean(estimates[k])) / residuals[k].std()
+                scaled_truths[k] = (truths[k] - np.mean(estimates[k])) / residuals[k].std()
 
             history = model.fit(
-                [residuals,estimates], truths,
+                [scaled_residuals,scaled_estimates], 
+                scaled_truths,
                 epochs=args.epochs, 
                 batch_size=32,
                 validation_split=0.1
             )
         
-    model.save_weights(args.weights)
+        model.save_weights(args.weights)
 
     # Plot training & validation loss values
     f,ax = plt.subplots(1)
@@ -132,11 +138,13 @@ if __name__ == "__main__":
     #plt.savefig('nn_training.pdf',bbox_inches='tight')
     #plt.close()
 
-    mse = np.sum( (truths-estimates)**2 )
-    debiased = model.predict( [residuals,estimates] ) 
-    mse_db = np.sum( (truths-debiased)**2 )
 
-    # TODO scale predicting using preprocessed data 
+    mse = np.sum( (truths-estimates)**2 )
+    debiased = model.predict( [scaled_residuals,scaled_estimates] )
+    for k in range(debiased.shape[0]):
+        debiased[k] *= residuals[k].std()
+
+    mse_db = np.sum( (truths-debiased)**2 )
 
     print('starting mse:',mse)
     print('debiased mse:',mse_db)
