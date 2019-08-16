@@ -1,4 +1,4 @@
-# Secret-AI-Project
+# Transmission Spectrum Estimator + Star Spot Debiaser with Machine Learning
 This project was created for the [Ariel Data Challenge](https://ariel-datachallenge.azurewebsites.net/ML)
 
 The Ariel Space mission is a European Space Agency mission to be launched in 2028. Ariel will observe the atmospheres of 1000 extrasolar planets - planets around other stars - to determine how they are made, how they evolve and how to put our own Solar System in the gallactic context.
