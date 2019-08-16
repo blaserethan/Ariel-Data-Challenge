@@ -59,10 +59,16 @@ Outputs:
 The neural network will be composed of multiple convolutional layers since each input vector has correlated features either through wavelength or time. After a few convolutions each branch of the neural network is piped into a fully connected layer with a multi data output representing hopefully, a debiased transmission spectrum. 
 
 The debiased estimates will look something like this: 
-![](figures/debias.png)
+![](figures/Debias.png)
 
 Red - Estimator
 
 Black - Debiased Estimate 
 
 Green - Truth 
+
+## Start to finish examples:
+python estimator.py 
+python noisy_train_estimator.py 
+python network_design.py 
+python noisy_test_estimator.py 

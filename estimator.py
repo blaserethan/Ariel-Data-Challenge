@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from scipy.ndimage import gaussian_filter
 
-def estimate_spectrum(data, smooth=9, data_smooth=3): 
+def estimate_spectrum(data, smooth=9, data_smooth=2): 
 
     whitelight = data.mean(0) #make a white light curve
     swl = gaussian_filter(whitelight, smooth) #smooth it out

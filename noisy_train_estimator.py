@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     for j in range(len(file_sets)):
         files = file_sets[j]
-        print('processing file:',file_sets[j])
+        #print('processing file:',file_sets[j])
 
         for i in range(NUM):
             data = np.loadtxt(files[i])
@@ -40,3 +40,9 @@ if __name__ == "__main__":
         pickle.dump( residuals, open("pickle_files/train_{}_residuals.pkl".format(j+1),'wb') )
 
         print('{} mse :{:.2f}'.format(j, np.sum( (truths-estimates)**2 ) ))
+
+        # for a smoothing factor of 2
+        # 0: 2.55
+        # 1: 1.65
+        # 2: 9.73
+        # 3: 18.99
