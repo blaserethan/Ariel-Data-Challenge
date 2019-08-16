@@ -17,14 +17,18 @@ if __name__ == "__main__":
         for j in range(1,10+1):
             for k in range(1,10+1):
                 try:
-                    filename = "noisy_test_1/{0:04d}_{0:02d}_{0:02d}.txt".format(i,j,k)
+                    filename = "noisy_test_1/{:04}_{:02}_{:02}.txt".format(i,j,k)
                     data = np.loadtxt(filename)
                 except:
-                    filename = "noisy_test_2/{0:04d}_{0:02d}_{0:02d}.txt".format(i,j,k)
-                    data = np.loadtxt(filename)
+                    try:
+                        filename = "noisy_test_2/{:04}_{:02}_{:02}.txt".format(i,j,k)
+                        data = np.loadtxt(filename)
+                    except:
+                        #print('file not found: ', filename, i,j,k)
+                        continue
 
                 estimates[dc], residuals[dc], snr = estimate_spectrum(data)
-                if i%100 == 0:
+                if dc%100 == 0:
                     print(i)
                 dc +=1 
 
