@@ -60,6 +60,9 @@ The neural network will be composed of multiple convolutional layers since each 
 
 The debiased estimates will look something like this: 
 ![](figures/debias.png)
+
 Red - Estimator
+
 Black - Debiased Estimate 
+
 Green - Truth 
