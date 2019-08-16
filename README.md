@@ -1,4 +1,4 @@
-# Secret-AI-Project
+# Transmission Spectrum Estimator 
 This project was created for the [Ariel Data Challenge](https://ariel-datachallenge.azurewebsites.net/ML)
 
 The Ariel Space mission is a European Space Agency mission to be launched in 2028. Ariel will observe the atmospheres of 1000 extrasolar planets - planets around other stars - to determine how they are made, how they evolve and how to put our own Solar System in the gallactic context.
@@ -41,30 +41,34 @@ After fitting the template to the white light we can apply the same technique to
 
 Not every estimate will look as good as this. This particular example happened to have a large signal to noise. 
 
+A 2D Gaussian filter is applied to the raw data in order to remove some noise before estimating the transit depth in each wavelength channel using a linear least squares technique. The smoothed data will look like this: 
+![](figures/smooth_data.png)
+
+
+
 ## Debiasing the estimator 
-Machine learning can be leveraged to debias the depth estimate by finding correlations between the estimated transmission spectrum and the residuals of the template fits. 
+Machine learning is leveraged to debias the depth estimate by finding correlations between the estimated transmission spectrum and the residuals of the template fits. 
 
 Inputs:
 - 2D Spectral time-series residuals
 - 1D Transit spectrum estimate 
-
-Optional inputs:
-- 2D spectral time-series
-- 1D white light curve
-- 1D template light curve
-- Stellar/Planetary parameters
 
 Outputs:
 - 1D transit spectrum
 
 The neural network will be composed of multiple convolutional layers since each input vector has correlated features either through wavelength or time. After a few convolutions each branch of the neural network is piped into a fully connected layer with a multi data output representing hopefully, a debiased transmission spectrum. 
 
+The debiased estimates will look something like this: 
+![](figures/Debias.png)
 
-## Tasks for Ethan
-- Find the optimal smoothing factor for the white light template
-    - for each sample fit the spectral time-series with different smoothing factors, compute MSE between estimator and Truth, save the best smoothing factor
-    - build a histogram of the best smoothing factors
-    - (optional) is there a correlation between best smoothing factor and some other data metric (e.g. stdev, transit depth, transit duration?, etc)
+Red - Estimator
 
-## Steps from start to finish
-1. python3 noisy_train_estimator.py
+Black - Debiased Estimate 
+
+Green - Truth 
+
+## Start to finish examples:
+- `python estimator.py`                (used to tune smoothing parameters)
+- `python noisy_train_estimator.py`    (estimate the transmission spectrum + format training data)
+- `python network_design.py`           (trains a NN to debias the estimator) 
+- `python noisy_test_estimator.py`     (evaluates test data, save to file)
