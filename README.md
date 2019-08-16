@@ -68,7 +68,7 @@ Black - Debiased Estimate
 Green - Truth 
 
 ## Start to finish examples:
-- python estimator.py                (used to tune smoothing parameters)
-- python noisy_train_estimator.py    (estimate the transmission spectrum)
-- python network_design.py           (trains a NN to debias the estimator) 
-- python noisy_test_estimator.py     (evaluates test data, save to file)
+- `python estimator.py`                (used to tune smoothing parameters)
+- `python noisy_train_estimator.py`    (estimate the transmission spectrum + format training data)
+- `python network_design.py`           (trains a NN to debias the estimator) 
+- `python noisy_test_estimator.py`     (evaluates test data, save to file)
