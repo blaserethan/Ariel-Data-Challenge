@@ -43,29 +43,14 @@ After fitting the template to the white light we can apply the same technique to
 Not every estimate will look as good as this. This particular example happened to have a large signal to noise. 
 
 ## Debiasing the estimator 
-Machine learning can be leveraged to debias the depth estimate by finding correlations between the estimated transmission spectrum and the residuals of the template fits. 
+Machine learning is leveraged to debias the depth estimate by finding correlations between the estimated transmission spectrum and the residuals of the template fits. 
 
 Inputs:
 - 2D Spectral time-series residuals
 - 1D Transit spectrum estimate 
-
-Optional inputs:
-- 2D spectral time-series
-- 1D white light curve
-- 1D template light curve
-- Stellar/Planetary parameters
 
 Outputs:
 - 1D transit spectrum
 
 The neural network will be composed of multiple convolutional layers since each input vector has correlated features either through wavelength or time. After a few convolutions each branch of the neural network is piped into a fully connected layer with a multi data output representing hopefully, a debiased transmission spectrum. 
 
-
-## Tasks for Ethan
-- Find the optimal smoothing factor for the white light template
-    - for each sample fit the spectral time-series with different smoothing factors, compute MSE between estimator and Truth, save the best smoothing factor
-    - build a histogram of the best smoothing factors
-    - (optional) is there a correlation between best smoothing factor and some other data metric (e.g. stdev, transit depth, transit duration?, etc)
-
-## Steps from start to finish
-1. python3 noisy_train_estimator.py
