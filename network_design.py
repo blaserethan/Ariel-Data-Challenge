@@ -51,7 +51,7 @@ def build_Convolutional(twoDOuts= [32,16,8], twoDKernel= [(5,6),(5,6),(5,6)], on
     return tf.keras.Model(inputs=[input2d,input1d], outputs=output, name='regressor')
 
 
-def build_FullyConnected(firstDense= 512, secondDense= [256,128], dropout= .5, ): # TODO parameterize model 
+def build_FullyConnected(firstDense=512, secondDense=[256,128], dropout= .25, ): # TODO parameterize model 
 
     input2d = tf.keras.Input(shape=(55,300), name="input_2d")
     
@@ -72,7 +72,7 @@ def build_FullyConnected(firstDense= 512, secondDense= [256,128], dropout= .5, )
         layerc= layers.Dense(size, activation= 'relu')(layerc)
 
     #output layer
-    output = layers.Dense(55, activation='relu')(layerc)
+    output = layers.Dense(55, activation='linear')(layerc)
 
     return tf.keras.Model(inputs=[input2d,input1d], outputs=output, name='regressor')
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     help_ = "Load h5 model trained weights"
     parser.add_argument("-w", "--weights", help=help_, default="regressor.h5")
     help_ = "Number of training epochs"
-    parser.add_argument("-e", "--epochs", help=help_, default=10 ,type=int)
+    parser.add_argument("-e", "--epochs", help=help_, default=5 ,type=int)
     args = parser.parse_args()
 
     model = build_FullyConnected()
@@ -112,26 +112,29 @@ if __name__ == "__main__":
             scaled_residuals = np.copy(residuals)
             scaled_estimates = np.copy(estimates)
             scaled_truths = np.copy(truths)
+            debiased = np.ones(truths.shape)
 
             for k in range(residuals.shape[0]):
                 scaled_residuals[k] = residuals[k] / residuals[k].std() 
-                scaled_estimates[k] = (estimates[k] - np.mean(estimates[k])) / residuals[k].std()
-                scaled_truths[k] = (truths[k] - np.mean(estimates[k])) / residuals[k].std()
+                scaled_estimates[k] = (estimates[k] - estimates[k].mean()) / residuals[k].std()
+                scaled_truths[k] = (truths[k] - estimates[k].mean()) / residuals[k].std()
+                #scaled_estimates[k] = (estimates[k]) / residuals[k].std()
+                #scaled_truths[k] = (truths[k]) / residuals[k].std()
 
             history = model.fit(
                 [scaled_residuals,scaled_estimates], 
                 scaled_truths,
                 epochs=args.epochs, 
                 batch_size=32,
-                validation_split=0.1
+                validation_split=0.05
             )
 
             debiased = model.predict( [scaled_residuals,scaled_estimates] )
             for k in range(debiased.shape[0]):
                 debiased[k] *= residuals[k].std()
-
-            mse_db = np.sum( (truths-debiased)**2 )
-
+                debiased[k] += estimates[k].mean()
+            mse.append( np.sum( (truths-debiased)**2 ) )
+            # plt.plot(debiased[2],'k-'); plt.plot(estimates[2],'r-'); plt.plot(truths[2],'g-'); plt.show()
         
         model.save_weights(args.weights)
 
@@ -146,13 +149,12 @@ if __name__ == "__main__":
     #plt.savefig('nn_training.pdf',bbox_inches='tight')
     #plt.close()
 
-
+    # compare final results
     mse = np.sum( (truths-estimates)**2 )
-
     debiased = model.predict( [scaled_residuals,scaled_estimates] )
     for k in range(debiased.shape[0]):
         debiased[k] *= residuals[k].std()
-
+        debiased[k] += estimates[k].mean()
     mse_db = np.sum( (truths-debiased)**2 )
 
     print('starting mse:',mse)
