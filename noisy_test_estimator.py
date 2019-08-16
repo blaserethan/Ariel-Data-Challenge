@@ -62,4 +62,5 @@ if __name__ == "__main__":
 
     np.savetxt('test_output.txt',debiased)
     print(debiased.shape)
-    np.savetxt('test_output_transpose.txt',debiased)
+    np.savetxt('test_output_transpose.txt',debiased.T)
+    
