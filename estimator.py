@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from scipy.ndimage import gaussian_filter
 
-def estimate_spectrum(data, smooth=9, data_smooth=5): 
+def estimate_spectrum(data, smooth=9, data_smooth=3): 
 
     whitelight = data.mean(0) #make a white light curve
     swl = gaussian_filter(whitelight, smooth) #smooth it out
@@ -17,7 +17,7 @@ def estimate_spectrum(data, smooth=9, data_smooth=5):
     # smooth data in time and wavelength to reduce noise    
     sdata = gaussian_filter(data,data_smooth)
     
-    #f,ax = plt.subplots(2); ax[0].imshow(data,vmin=0.999,vmax=1.001); ax[0].set_title('Raw Data'); im=ax[1].imshow(sdata,vmin=0.999,vmax=1.001); ax[1].set_title('Smoothed Data'); cbar = plt.colorbar(im); cbar.ax.get_yaxis().labelpad = 15; cbar.ax.set_ylabel('Relative flux'); plt.show()
+    #f,ax = plt.subplots(2); ax[0].imshow(data,vmin=0.999,vmax=1.001); ax[0].set_ylabel('Wavelength Index'); ax[1].set_xlabel('Time Index'); ax[0].set_title('Raw Data'); im=ax[1].imshow(sdata,vmin=0.999,vmax=1.001); ax[1].set_title('Smoothed Data'); cbar = plt.colorbar(im); cbar.ax.get_yaxis().labelpad = 15; cbar.ax.set_ylabel('Relative flux'); plt.show()
 
     depths = np.zeros(data.shape[0]) #alloc for transit depth vector
     residuals = np.zeros(data.shape) #Data- model

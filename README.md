@@ -1,5 +1,4 @@
 # Transmission Spectrum Estimator 
-## The estimator is debiased from the star spots using machine learning
 This project was created for the [Ariel Data Challenge](https://ariel-datachallenge.azurewebsites.net/ML)
 
 The Ariel Space mission is a European Space Agency mission to be launched in 2028. Ariel will observe the atmospheres of 1000 extrasolar planets - planets around other stars - to determine how they are made, how they evolve and how to put our own Solar System in the gallactic context.
@@ -42,6 +41,11 @@ After fitting the template to the white light we can apply the same technique to
 
 Not every estimate will look as good as this. This particular example happened to have a large signal to noise. 
 
+A 2D Gaussian filter is applied to the raw data in order to remove some noise before estimating the transit depth in each wavelength channel using a linear least squares technique. The smoothed data will look like this: 
+![](figures/smooth_data.png)
+
+
+
 ## Debiasing the estimator 
 Machine learning is leveraged to debias the depth estimate by finding correlations between the estimated transmission spectrum and the residuals of the template fits. 
 
@@ -54,3 +58,8 @@ Outputs:
 
 The neural network will be composed of multiple convolutional layers since each input vector has correlated features either through wavelength or time. After a few convolutions each branch of the neural network is piped into a fully connected layer with a multi data output representing hopefully, a debiased transmission spectrum. 
 
+The debiased estimates will look something like this: 
+![](figures/debias.png)
+Red - Estimator
+Black - Debiased Estimate 
+Green - Truth 
